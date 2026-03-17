@@ -17,8 +17,14 @@ async function connectDB() {
   }
 
   mongoose.set("strictQuery", true);
+  mongoose.set("bufferCommands", false);
   connectionPromise = mongoose
-    .connect(mongoURI)
+    .connect(mongoURI, {
+      serverSelectionTimeoutMS: 10000,
+      connectTimeoutMS: 10000,
+      socketTimeoutMS: 20000,
+      family: 4
+    })
     .then((connection) => {
       console.log("MongoDB connected");
       return connection;

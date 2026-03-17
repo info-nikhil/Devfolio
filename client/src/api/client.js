@@ -30,7 +30,8 @@ const publicAuthRoutes = new Set([
 ]);
 
 const apiClient = axios.create({
-  baseURL
+  baseURL,
+  timeout: 15000
 });
 
 apiClient.interceptors.request.use((config) => {
@@ -45,5 +46,16 @@ apiClient.interceptors.request.use((config) => {
 
   return config;
 });
+
+apiClient.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.code === "ECONNABORTED") {
+      error.message = "Request timed out. Check VITE_API_URL and backend availability.";
+    }
+
+    return Promise.reject(error);
+  }
+);
 
 export default apiClient;

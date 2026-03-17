@@ -6,6 +6,10 @@ const healthPaths = new Set(["/", "/api", "/api/", "/health", "/health/", "/api/
 const handler = serverless(app);
 
 function shouldSkipDatabase(req) {
+  if (req.method === "OPTIONS") {
+    return true;
+  }
+
   const requestPath = (req.url || "").split("?")[0];
   return healthPaths.has(requestPath);
 }
@@ -19,6 +23,14 @@ module.exports = async (req, res) => {
     return handler(req, res);
   } catch (error) {
     console.error("Serverless handler error:", error);
+
+    const requestOrigin = req.headers?.origin;
+    if (requestOrigin) {
+      res.setHeader("Access-Control-Allow-Origin", requestOrigin);
+      res.setHeader("Access-Control-Allow-Credentials", "true");
+      res.setHeader("Vary", "Origin");
+    }
+
     return res.status(500).json({
       message: error.message || "Internal server error"
     });
