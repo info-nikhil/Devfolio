@@ -3,6 +3,22 @@ import apiClient from "../api/client";
 
 const AuthContext = createContext(null);
 
+function postForm(url, payload) {
+  const formData = new URLSearchParams();
+
+  Object.entries(payload).forEach(([key, value]) => {
+    if (value !== undefined && value !== null) {
+      formData.append(key, value);
+    }
+  });
+
+  return apiClient.post(url, formData, {
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded"
+    }
+  });
+}
+
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(localStorage.getItem("token"));
@@ -37,39 +53,39 @@ export function AuthProvider({ children }) {
   }
 
   async function login(email, password) {
-    const response = await apiClient.post("/auth/login", { email, password });
+    const response = await postForm("/auth/login", { email, password });
     storeAuth(response.data.token, response.data.user);
     return response.data;
   }
 
   async function register(payload) {
-    const response = await apiClient.post("/auth/register", payload);
+    const response = await postForm("/auth/register", payload);
     return response.data;
   }
 
   async function verifyEmail(email, otp) {
-    const response = await apiClient.post("/auth/verify-email", { email, otp });
+    const response = await postForm("/auth/verify-email", { email, otp });
     storeAuth(response.data.token, response.data.user);
     return response.data;
   }
 
   async function resendVerification(email) {
-    const response = await apiClient.post("/auth/resend-verification", { email });
+    const response = await postForm("/auth/resend-verification", { email });
     return response.data;
   }
 
   async function forgotPassword(email) {
-    const response = await apiClient.post("/auth/forgot-password", { email });
+    const response = await postForm("/auth/forgot-password", { email });
     return response.data;
   }
 
   async function resetPassword(email, otp, newPassword) {
-    const response = await apiClient.post("/auth/reset-password", { email, otp, newPassword });
+    const response = await postForm("/auth/reset-password", { email, otp, newPassword });
     return response.data;
   }
 
   async function googleLogin(credential) {
-    const response = await apiClient.post("/auth/google", { credential });
+    const response = await postForm("/auth/google", { credential });
     storeAuth(response.data.token, response.data.user);
     return response.data;
   }
