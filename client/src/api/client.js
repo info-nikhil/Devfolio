@@ -1,6 +1,24 @@
 import axios from "axios";
 
-const baseURL = (import.meta.env.VITE_API_URL || "http://localhost:5000/api").replace(/\/+$/, "");
+function normalizeApiBaseUrl(value) {
+  const rawValue = (value || "http://localhost:5000/api").trim().replace(/\/+$/, "");
+
+  if (/^https?:\/\//i.test(rawValue) || rawValue.startsWith("/")) {
+    return rawValue;
+  }
+
+  if (/^(localhost|127\.0\.0\.1)(:\d+)?(\/.*)?$/i.test(rawValue)) {
+    return `http://${rawValue}`;
+  }
+
+  if (/^[a-z0-9.-]+\.[a-z]{2,}(\/.*)?$/i.test(rawValue)) {
+    return `https://${rawValue}`;
+  }
+
+  return rawValue;
+}
+
+const baseURL = normalizeApiBaseUrl(import.meta.env.VITE_API_URL);
 const publicAuthRoutes = new Set([
   "/auth/register",
   "/auth/login",
