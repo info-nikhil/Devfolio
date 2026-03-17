@@ -1,7 +1,9 @@
 const connectDB = require("../src/config/db");
+const serverless = require("serverless-http");
 const app = require("../src/app");
 
 const healthPaths = new Set(["/", "/api", "/api/", "/health", "/health/", "/api/health", "/api/health/"]);
+const handler = serverless(app);
 
 function shouldSkipDatabase(req) {
   const requestPath = (req.url || "").split("?")[0];
@@ -14,7 +16,7 @@ module.exports = async (req, res) => {
       await connectDB();
     }
 
-    return app(req, res);
+    return handler(req, res);
   } catch (error) {
     console.error("Serverless handler error:", error);
     return res.status(500).json({
