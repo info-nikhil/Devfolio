@@ -1,9 +1,7 @@
 const connectDB = require("../src/config/db");
-const serverless = require("serverless-http");
 const app = require("../src/app");
 
 const healthPaths = new Set(["/", "/api", "/api/", "/health", "/health/", "/api/health", "/api/health/"]);
-const handler = serverless(app);
 
 function shouldSkipDatabase(req) {
   if (req.method === "OPTIONS") {
@@ -20,7 +18,7 @@ module.exports = async (req, res) => {
       await connectDB();
     }
 
-    return handler(req, res);
+    return app(req, res);
   } catch (error) {
     console.error("Serverless handler error:", error);
 
@@ -31,8 +29,12 @@ module.exports = async (req, res) => {
       res.setHeader("Vary", "Origin");
     }
 
-    return res.status(500).json({
-      message: error.message || "Internal server error"
-    });
+    res.statusCode = 500;
+    res.setHeader("Content-Type", "application/json; charset=utf-8");
+    return res.end(
+      JSON.stringify({
+        message: error.message || "Internal server error"
+      })
+    );
   }
 };
