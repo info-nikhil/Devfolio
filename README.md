@@ -130,20 +130,19 @@ This avoids the Hobby-plan serverless function limit and keeps auth on the same 
 ### Required environment variables
 
 Frontend:
-- `VITE_GOOGLE_CLIENT_ID` for the Google button
-- `VITE_API_URL` only if the API is hosted on a different domain. Leave it unset for same-origin Vercel deployment.
+- `VITE_API_URL` only. Leave it unset for same-origin Vercel deployment.
 
 Backend:
 - `MONGODB_URI`
 - `JWT_SECRET`
-- `CLIENT_URL`
+- `FRONTEND_URL`
 - `SMTP_EMAIL`
 - `SMTP_PASSWORD`
-- `GOOGLE_CLIENT_ID` and/or `GOOGLE_CLIENT_IDS`
+- `GOOGLE_CLIENT_ID`
 - Razorpay and Vercel deployment variables if you use those features
 
 ### If you still deploy frontend and backend separately
 
 - Keep `VITE_API_URL` pointed at the backend origin, for example `https://your-api.vercel.app/api`
-- Set `CLIENT_URL` on the backend to the frontend origin
+- Set `FRONTEND_URL` on the backend to the frontend origin
 - Add every frontend origin you use to Google Cloud Authorized JavaScript origins

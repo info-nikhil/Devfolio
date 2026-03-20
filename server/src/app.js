@@ -17,6 +17,7 @@ const adminRoutes = require("./routes/adminRoutes");
 const contactRoutes = require("./routes/contactRoutes");
 const deployRoutes = require("./routes/deployRoutes");
 const healthRoutes = require("./routes/healthRoutes");
+const configRoutes = require("./routes/configRoutes");
 const paymentController = require("./controllers/paymentController");
 const notFoundMiddleware = require("./middleware/notFoundMiddleware");
 const errorMiddleware = require("./middleware/errorMiddleware");
@@ -103,36 +104,98 @@ function getClientIp(req) {
 
 app.set("trust proxy", resolveTrustProxySetting());
 
-const allowedOrigins = (process.env.CLIENT_URL || "http://localhost:5173")
-  .split(",")
-  .map((origin) => origin.trim())
-  .filter(Boolean);
+function normalizeOrigin(value) {
+  return typeof value === "string" ? value.trim().replace(/\/+$/, "") : "";
+}
 
-function isAllowedOrigin(origin) {
-  if (!origin) {
+function getConfiguredFrontendOrigins() {
+  const configuredOrigins = (process.env.FRONTEND_URL || "")
+    .split(",")
+    .map((origin) => normalizeOrigin(origin))
+    .filter(Boolean);
+
+  if (configuredOrigins.length > 0) {
+    return configuredOrigins;
+  }
+
+  if (process.env.NODE_ENV !== "production") {
+    return ["http://localhost:5173"];
+  }
+
+  return [];
+}
+
+const allowedOrigins = getConfiguredFrontendOrigins();
+
+function getRequestOrigin(req) {
+  const forwardedProto = req.headers["x-forwarded-proto"];
+  const protocol =
+    (Array.isArray(forwardedProto) ? forwardedProto[0] : forwardedProto)?.split(",")[0].trim() ||
+    req.protocol ||
+    "https";
+  const forwardedHost = req.headers["x-forwarded-host"];
+  const host = (Array.isArray(forwardedHost) ? forwardedHost[0] : forwardedHost) || req.headers.host;
+
+  if (!host) {
+    return "";
+  }
+
+  return normalizeOrigin(`${protocol}://${host}`);
+}
+
+function isAllowedOrigin(origin, req) {
+  const normalizedOrigin = normalizeOrigin(origin);
+  if (!normalizedOrigin) {
     return true;
   }
 
-  if (allowedOrigins.includes(origin)) {
+  if (allowedOrigins.includes(normalizedOrigin)) {
     return true;
   }
 
-  // Allow Vercel preview and production frontend URLs without turning CORS failures into 500s.
-  if (/^https:\/\/[a-z0-9-]+\.vercel\.app$/i.test(origin)) {
+  if (normalizedOrigin === getRequestOrigin(req)) {
     return true;
   }
 
   return false;
 }
 
-const corsOptions = {
-  origin(origin, callback) {
-    if (isAllowedOrigin(origin)) {
-      return callback(null, true);
+function handleCors(req, res, next) {
+  const requestOrigin = req.headers.origin;
+
+  if (!requestOrigin) {
+    if (req.method === "OPTIONS") {
+      return res.sendStatus(204);
     }
 
-    console.warn(`Blocked CORS origin: ${origin}`);
-    return callback(null, false);
+    return next();
+  }
+
+  if (!isAllowedOrigin(requestOrigin, req)) {
+    console.warn(`Blocked CORS origin: ${requestOrigin}`);
+    return res.status(403).json({ message: "Origin not allowed" });
+  }
+
+  res.header("Access-Control-Allow-Origin", requestOrigin);
+  res.header("Vary", "Origin");
+  res.header("Access-Control-Allow-Credentials", "true");
+  res.header("Access-Control-Allow-Methods", "GET,POST,PUT,PATCH,DELETE,OPTIONS");
+  res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
+
+  if (req.method === "OPTIONS") {
+    return res.sendStatus(204);
+  }
+
+  return next();
+}
+
+const corsOptions = {
+  origin(origin, callback) {
+    if (!origin) {
+      return callback(null, false);
+    }
+
+    return callback(null, true);
   },
   credentials: true,
   methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
@@ -159,25 +222,7 @@ const limiter = rateLimit({
   }
 });
 
-// Handle CORS preflight up front so browsers do not get stuck waiting on auth requests.
-app.use((req, res, next) => {
-  const requestOrigin = req.headers.origin;
-
-  if (requestOrigin && isAllowedOrigin(requestOrigin)) {
-    res.header("Access-Control-Allow-Origin", requestOrigin);
-    res.header("Vary", "Origin");
-    res.header("Access-Control-Allow-Credentials", "true");
-    res.header("Access-Control-Allow-Methods", "GET,POST,PUT,PATCH,DELETE,OPTIONS");
-    res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
-  }
-
-  if (req.method === "OPTIONS") {
-    return res.sendStatus(204);
-  }
-
-  return next();
-});
-
+app.use(handleCors);
 app.use(cors(corsOptions));
 app.options("*", cors(corsOptions));
 app.use(helmet());
@@ -208,6 +253,7 @@ apiRouter.get("/", (req, res) => {
   });
 });
 
+apiRouter.use("/config", configRoutes);
 apiRouter.use("/health", healthRoutes);
 apiRouter.use("/auth", authRoutes);
 apiRouter.use("/portfolios", portfolioRoutes);

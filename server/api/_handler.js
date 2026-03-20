@@ -1,7 +1,19 @@
 const connectDB = require("../src/config/db");
 const app = require("../src/app");
 
-const healthPaths = new Set(["/", "/api", "/api/", "/health", "/health/", "/api/health", "/api/health/"]);
+const healthPaths = new Set([
+  "/",
+  "/api",
+  "/api/",
+  "/health",
+  "/health/",
+  "/api/health",
+  "/api/health/",
+  "/config/public",
+  "/config/public/",
+  "/api/config/public",
+  "/api/config/public/"
+]);
 
 function shouldSkipDatabase(req) {
   if (req.method === "OPTIONS") {

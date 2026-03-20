@@ -2,6 +2,7 @@ import { useState } from "react";
 import { GoogleLogin } from "@react-oauth/google";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { usePublicConfig } from "../context/PublicConfigContext";
 
 const modeMeta = {
   login: {
@@ -34,6 +35,7 @@ const modeMeta = {
 function AuthPage() {
   const navigate = useNavigate();
   const auth = useAuth();
+  const { googleClientId, loading: publicConfigLoading } = usePublicConfig();
   const [mode, setMode] = useState("login");
   const [pendingEmail, setPendingEmail] = useState("");
   const [message, setMessage] = useState("");
@@ -50,7 +52,7 @@ function AuthPage() {
   const [forgotEmail, setForgotEmail] = useState("");
   const [resetForm, setResetForm] = useState({ email: "", otp: "", newPassword: "" });
 
-  const googleEnabled = Boolean(import.meta.env.VITE_GOOGLE_CLIENT_ID);
+  const googleEnabled = Boolean(googleClientId);
   const currentMode = modeMeta[mode];
 
   function handlePostLogin(user) {
@@ -375,9 +377,11 @@ function AuthPage() {
                 <div className="google-wrap">
                   <GoogleLogin onSuccess={handleGoogleSuccess} onError={() => setMessage("Google login failed")} />
                 </div>
+              ) : publicConfigLoading ? (
+                <div className="dev-note-card">Loading sign-in providers...</div>
               ) : (
                 <div className="dev-note-card">
-                  Google sign in is hidden until <code>VITE_GOOGLE_CLIENT_ID</code> is available in <code>client/.env</code>.
+                  Google sign in is unavailable until the backend is configured with <code>GOOGLE_CLIENT_ID</code>.
                 </div>
               )}
             </div>

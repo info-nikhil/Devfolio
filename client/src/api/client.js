@@ -29,7 +29,12 @@ function normalizeApiBaseUrl(value) {
   return rawValue;
 }
 
-const baseURL = normalizeApiBaseUrl(import.meta.env.VITE_API_URL);
+export function getApiBaseUrl() {
+  const viteEnv = typeof import.meta !== "undefined" ? import.meta.env : undefined;
+  return normalizeApiBaseUrl(viteEnv?.VITE_API_URL);
+}
+
+const baseURL = getApiBaseUrl();
 const publicAuthRoutes = new Set([
   "/auth/register",
   "/auth/login",

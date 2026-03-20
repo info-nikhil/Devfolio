@@ -30,6 +30,7 @@ Server runs on `http://localhost:5000`.
 - `POST /api/auth/forgot-password`
 - `POST /api/auth/reset-password`
 - `POST /api/auth/google`
+- `GET /api/config/public`
 - `GET /api/portfolios/my`
 - `POST /api/portfolios`
 - `PUT /api/portfolios/:id`
@@ -46,3 +47,5 @@ This folder now uses:
 - `api/[...path].js` for every nested API route
 
 That keeps the backend deployment to two serverless entrypoints instead of one file per route.
+
+Set `FRONTEND_URL` to the frontend origin so the backend only accepts browser requests from approved frontend domains.

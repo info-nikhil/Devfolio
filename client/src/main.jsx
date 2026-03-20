@@ -4,20 +4,31 @@ import { BrowserRouter } from "react-router-dom";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import App from "./App";
 import { AuthProvider } from "./context/AuthContext";
+import { PublicConfigProvider, usePublicConfig } from "./context/PublicConfigContext";
 import "./styles/app.css";
 
-const root = (
-  <React.StrictMode>
-    <BrowserRouter>
-      <AuthProvider>
-        <App />
-      </AuthProvider>
-    </BrowserRouter>
-  </React.StrictMode>
-);
+function AppProviders() {
+  const { googleClientId, loading } = usePublicConfig();
 
-const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+  if (loading) {
+    return <div className="page-center">Loading application...</div>;
+  }
+
+  const app = (
+    <AuthProvider>
+      <App />
+    </AuthProvider>
+  );
+
+  return googleClientId ? <GoogleOAuthProvider clientId={googleClientId}>{app}</GoogleOAuthProvider> : app;
+}
 
 ReactDOM.createRoot(document.getElementById("root")).render(
-  googleClientId ? <GoogleOAuthProvider clientId={googleClientId}>{root}</GoogleOAuthProvider> : root
+  <React.StrictMode>
+    <BrowserRouter>
+      <PublicConfigProvider>
+        <AppProviders />
+      </PublicConfigProvider>
+    </BrowserRouter>
+  </React.StrictMode>
 );

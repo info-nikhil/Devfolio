@@ -14,14 +14,6 @@ function normalizeText(value) {
   return typeof value === "string" ? value.trim() : "";
 }
 
-function readGoogleClientIds() {
-  return [process.env.GOOGLE_CLIENT_ID, process.env.GOOGLE_CLIENT_IDS]
-    .filter((value) => typeof value === "string" && value.trim())
-    .flatMap((value) => value.split(","))
-    .map((value) => value.trim())
-    .filter(Boolean);
-}
-
 async function createUniqueUsername(baseValue) {
   const base = slugify(baseValue) || `user${Date.now()}`;
   let candidate = base;
@@ -300,15 +292,15 @@ async function googleLogin(req, res) {
       return res.status(400).json({ message: "Google credential is required" });
     }
 
-    const googleClientIds = readGoogleClientIds();
-    if (googleClientIds.length === 0) {
+    const googleClientId = normalizeText(process.env.GOOGLE_CLIENT_ID);
+    if (!googleClientId) {
       return res.status(500).json({ message: "GOOGLE_CLIENT_ID is not configured" });
     }
 
     const googleClient = new OAuth2Client();
     const ticket = await googleClient.verifyIdToken({
       idToken: credential,
-      audience: googleClientIds
+      audience: googleClientId
     });
 
     const payload = ticket.getPayload();
