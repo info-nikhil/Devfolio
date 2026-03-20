@@ -145,6 +145,9 @@ const limiter = rateLimit({
   max: 200,
   standardHeaders: true,
   legacyHeaders: false,
+  validate: {
+    ip: false
+  },
   keyGenerator(req) {
     const clientIp = getClientIp(req);
     if (clientIp) {
