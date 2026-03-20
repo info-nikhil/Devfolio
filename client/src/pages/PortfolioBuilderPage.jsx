@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { jsPDF } from "jspdf";
 import { useNavigate, useParams } from "react-router-dom";
 import apiClient from "../api/client";
@@ -7,7 +7,7 @@ import PreviewPanel from "../components/builder/PreviewPanel";
 import CodeEditorPanel from "../components/builder/CodeEditorPanel";
 import TemplateSelector from "../components/builder/TemplateSelector";
 import { defaultPortfolioData } from "../templates/defaultData";
-import { buildPortfolioHtml, extractPortfolioPayload } from "../templates/templateEngine";
+import { buildPortfolioHtml, extractPortfolioPayload, getTemplateOptions } from "../templates/templateEngine";
 
 function PortfolioBuilderPage() {
   const navigate = useNavigate();
@@ -193,9 +193,7 @@ function PortfolioBuilderPage() {
         }
       });
 
-      const fileName = `${(portfolioData.profile?.name || "portfolio")
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, "-")}.pdf`;
+      const fileName = `${(portfolioData.profile?.name || "portfolio").toLowerCase().replace(/[^a-z0-9]+/g, "-")}.pdf`;
       pdf.save(fileName);
       setStatus("PDF downloaded");
     } catch (error) {
@@ -203,69 +201,105 @@ function PortfolioBuilderPage() {
     }
   }
 
+  const templateOptions = useMemo(() => getTemplateOptions(), []);
+  const activeTemplate = templateOptions.find((item) => item.id === templateId) || templateOptions[0];
+  const builderStats = [
+    { label: "Projects", value: portfolioData.projects.length },
+    { label: "Skills", value: portfolioData.skills.length },
+    { label: "Mode", value: mode === "preview" ? "Live preview" : "Code editor" }
+  ];
+
   if (loading) {
     return <div className="page-center">Loading portfolio builder...</div>;
   }
 
   return (
     <div className="builder-page">
-      <div className="content-wrap">
-        <div className="builder-header">
+      <div className="content-wrap page-shell">
+        <section className="builder-hero glass-card">
           <div>
-            <h1>Portfolio Builder</h1>
-            <p>Fill details in the form or edit code manually. Form and code stay synchronized via embedded data.</p>
-            {codeChanged && (
-              <p className="status-text">Manual code edits detected. Next form/template change will rebuild code.</p>
-            )}
+            <p className="kicker">Portfolio builder</p>
+            <h1>Create a portfolio that feels designed, not assembled.</h1>
+            <p>
+              Edit your content on the left, inspect the live preview on the right, and switch to raw code whenever you
+              want to go off-grid without breaking synchronization.
+            </p>
           </div>
+          <div className="builder-hero-side">
+            <span className="user-chip">{activeTemplate?.label}</span>
+            <strong>{activeTemplate?.description}</strong>
+            <small>{activeTemplate?.mood}</small>
+          </div>
+        </section>
 
-          <div className="builder-actions">
+        <section className="dashboard-stats-grid builder-stat-grid">
+          {builderStats.map((item) => (
+            <article key={item.label} className="glass-card stat-card compact">
+              <span className="stat-label">{item.label}</span>
+              <strong>{item.value}</strong>
+            </article>
+          ))}
+        </section>
+
+        <div className="builder-toolbar-grid">
+          <div className="glass-card toolbar-card grow">
             <TemplateSelector selectedTemplate={templateId} onSelectTemplate={setTemplateId} />
-            <div className="mode-switch">
-              <button
-                type="button"
-                className={`btn btn-small ${mode === "preview" ? "" : "btn-outline"}`}
-                onClick={() => setMode("preview")}
-              >
+          </div>
+          <div className="glass-card toolbar-card">
+            <span className="small-label">Mode</span>
+            <div className="mode-switch segmented-control">
+              <button type="button" className={mode === "preview" ? "active" : ""} onClick={() => setMode("preview")}>
                 Preview
               </button>
-              <button
-                type="button"
-                className={`btn btn-small ${mode === "code" ? "" : "btn-outline"}`}
-                onClick={() => setMode("code")}
-              >
+              <button type="button" className={mode === "code" ? "active" : ""} onClick={() => setMode("code")}>
                 Code Editor
               </button>
             </div>
-            <div className="action-row">
-              <button type="button" className="btn btn-small" disabled={saving} onClick={savePortfolio}>
+          </div>
+          <div className="glass-card toolbar-card">
+            <span className="small-label">Actions</span>
+            <div className="action-row stacked">
+              <button type="button" className="btn btn-primary btn-small" disabled={saving} onClick={savePortfolio}>
                 {saving ? "Saving..." : "Save"}
               </button>
-              <button type="button" className="btn btn-small" disabled={deploying} onClick={deployPortfolio}>
+              <button type="button" className="btn btn-outline btn-small" disabled={deploying} onClick={deployPortfolio}>
                 {deploying ? "Deploying..." : "Deploy"}
               </button>
-              <button type="button" className="btn btn-small btn-outline" onClick={downloadPdf}>
+              <button type="button" className="btn btn-ghost btn-small" onClick={downloadPdf}>
                 Download PDF
               </button>
             </div>
           </div>
         </div>
 
-        {deploymentUrl && (
-          <div className="panel deploy-result">
-            <p>
-              Deployment URL:{" "}
-              <a href={deploymentUrl} target="_blank" rel="noreferrer">
-                {deploymentUrl}
-              </a>
-            </p>
-          </div>
+        {(deploymentUrl || status || codeChanged) && (
+          <section className="builder-status-grid">
+            {deploymentUrl && (
+              <div className="glass-card status-card">
+                <span className="small-label">Deployment URL</span>
+                <a href={deploymentUrl} target="_blank" rel="noreferrer">
+                  {deploymentUrl}
+                </a>
+              </div>
+            )}
+            {codeChanged && (
+              <div className="glass-card status-card">
+                <span className="small-label">Code sync</span>
+                <p>Manual code edits detected. The next form or template change will rebuild the preview code.</p>
+              </div>
+            )}
+            {status && (
+              <div className="glass-card status-card">
+                <span className="small-label">Builder status</span>
+                <p>{status}</p>
+              </div>
+            )}
+          </section>
         )}
-        {status && <p className="status-text">{status}</p>}
 
         <section className="builder-layout">
           <PortfolioFormPanel data={portfolioData} onChange={handleDataChange} />
-          <div className="right-pane">
+          <div className="right-pane glass-card">
             {mode === "preview" ? (
               <PreviewPanel htmlCode={code} iframeRef={iframeRef} />
             ) : (

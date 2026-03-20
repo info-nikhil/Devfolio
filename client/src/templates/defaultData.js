@@ -1,36 +1,67 @@
 export const defaultPortfolioData = {
-  title: "My Portfolio",
+  title: "Aarav Mehta - Product Developer Portfolio",
   templateId: "template1",
   profile: {
-    name: "Your Name",
-    profilePicture: "https://images.unsplash.com/photo-1542909168-82c3e7fdca5c?w=500",
+    name: "Aarav Mehta",
+    profilePicture: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=900&auto=format&fit=crop&q=80",
     aboutMe:
-      "I am a full stack developer passionate about building clean, useful, and scalable web applications."
+      "I build digital products that blend clean engineering, strong interaction design, and a clear business point of view. I enjoy turning complex ideas into interfaces that feel focused, useful, and memorable."
   },
-  skills: ["JavaScript", "React", "Node.js", "Express", "MongoDB"],
+  skills: ["React", "Node.js", "MongoDB", "Design Systems", "Product Strategy", "TypeScript", "Figma"],
   projects: [
     {
-      title: "Portfolio Builder",
-      description: "A SaaS platform that lets users create and deploy portfolios quickly.",
-      demoLink: "https://example.com/demo",
-      repoLink: "https://github.com/example/portfolio-builder"
+      title: "Creator Commerce Suite",
+      description:
+        "Designed and shipped a multi-step creator storefront that improved discovery, upsells, and conversion flow for digital products.",
+      demoLink: "https://example.com/creator-suite",
+      repoLink: "https://github.com/example/creator-suite"
+    },
+    {
+      title: "Analytics Pulse Dashboard",
+      description:
+        "Built an admin analytics experience with cohort tracking, revenue snapshots, and campaign reporting for growth teams.",
+      demoLink: "https://example.com/analytics-pulse",
+      repoLink: "https://github.com/example/analytics-pulse"
+    },
+    {
+      title: "Studio Booking Platform",
+      description:
+        "Created a cinematic booking experience for a creative studio with live availability, lead capture, and service storytelling.",
+      demoLink: "https://example.com/studio-booking",
+      repoLink: "https://github.com/example/studio-booking"
     }
   ],
   experience: [
     {
-      role: "Frontend Developer",
-      company: "Tech Studio",
-      description: "Built reusable React components and improved web performance.",
-      startDate: "Jan 2024",
+      role: "Senior Frontend Engineer",
+      company: "Northstar Studio",
+      description:
+        "Led the UI architecture for marketing and product surfaces, shipped reusable systems, and partnered with design to raise overall product quality.",
+      startDate: "2024",
       endDate: "Present"
+    },
+    {
+      role: "Product Designer and Developer",
+      company: "Freelance",
+      description:
+        "Worked with founders and small teams to turn product ideas into launch-ready web experiences with strong storytelling and fast iteration loops.",
+      startDate: "2021",
+      endDate: "2024"
     }
   ],
   education: [
     {
-      institution: "State University",
+      institution: "National Institute of Technology",
       degree: "B.Tech in Computer Science",
-      description: "Focused on web technologies and software engineering.",
-      startYear: "2020",
+      description: "Focused on web systems, human-computer interaction, and product-led software development.",
+      startYear: "2018",
+      endYear: "2022"
+    },
+    {
+      institution: "Interaction Design Foundation",
+      degree: "Advanced UI and Product Systems",
+      description: "Extended into visual systems, accessibility, and higher-fidelity interface storytelling.",
+      startYear: "2023",
       endYear: "2024"
     }
   ],
@@ -41,8 +72,8 @@ export const defaultPortfolioData = {
     website: "https://example.com"
   },
   contactInfo: {
-    email: "you@example.com",
-    phone: "+1 123 456 7890",
-    location: "San Francisco, USA"
+    email: "aarav@example.com",
+    phone: "+91 98765 43210",
+    location: "Bengaluru, India"
   }
 };

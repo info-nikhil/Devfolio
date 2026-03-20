@@ -7,12 +7,13 @@ function CodeEditorPanel({ code, onCodeChange }) {
         height="100%"
         defaultLanguage="html"
         value={code}
-        theme="vs-light"
+        theme="vs-dark"
         options={{
           fontSize: 14,
           minimap: { enabled: false },
           wordWrap: "on",
-          scrollBeyondLastLine: false
+          scrollBeyondLastLine: false,
+          padding: { top: 18 }
         }}
         onChange={(value) => onCodeChange(value || "")}
       />

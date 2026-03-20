@@ -1,7 +1,25 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import apiClient from "../api/client";
 import { useAuth } from "../context/AuthContext";
+
+const planDetails = {
+  free: {
+    eyebrow: "Starter",
+    summary: "Perfect for early experimentation and testing the builder locally.",
+    highlights: ["Single portfolio workspace", "Basic template access", "Manual editing support"]
+  },
+  student: {
+    eyebrow: "Best for students",
+    summary: "A sharper plan for internships, placements, and first client-facing portfolio launches.",
+    highlights: ["Multiple saves", "Template switching", "Premium builder workflow"]
+  },
+  professional: {
+    eyebrow: "Best for freelancers",
+    summary: "Use the full workspace to present polished projects, close clients, and iterate quickly.",
+    highlights: ["Priority workflow", "Advanced deployment usage", "Stronger template collection"]
+  }
+};
 
 function loadRazorpayScript() {
   return new Promise((resolve) => {
@@ -114,43 +132,82 @@ function PlansPage() {
     }
   }
 
-  const currentSubscription = subscriptions.find((item) => item.status === "active");
+  const currentSubscription = useMemo(
+    () => subscriptions.find((item) => item.status === "active") || subscriptions[0],
+    [subscriptions]
+  );
 
   return (
-    <div className="content-wrap page-block">
-      <h1>Subscription Plans</h1>
-      <p>Choose a plan based on your needs. Payment activation is done after webhook verification.</p>
-
-      {currentSubscription && (
-        <div className="panel">
+    <div className="content-wrap page-shell">
+      <section className="plans-hero glass-card">
+        <div>
+          <p className="kicker">Pricing</p>
+          <h1>Choose the plan that matches the way you want to present your work.</h1>
           <p>
-            Active Plan: <strong>{currentSubscription.plan}</strong>
-          </p>
-          <p>
-            Valid Till:{" "}
-            <strong>{currentSubscription.endsAt ? new Date(currentSubscription.endsAt).toLocaleDateString() : "-"}</strong>
+            Start with the free workflow, move into student mode for stronger placement-ready portfolios, or unlock the
+            professional setup when you need a more serious presentation layer.
           </p>
         </div>
-      )}
-
-      <section className="plans-grid">
-        {plans.map((plan) => (
-          <article key={plan.key} className="panel plan-card">
-            <h3>{plan.label}</h3>
-            <p className="price">{plan.amount === 0 ? "Free" : `INR ${(plan.amount / 100).toFixed(0)} / month`}</p>
-            <ul>
-              <li>Template access</li>
-              <li>Portfolio deployment</li>
-              <li>Dashboard insights</li>
-            </ul>
-            <button className="btn" disabled={loadingPlan === plan.key} onClick={() => handleSelectPlan(plan.key)}>
-              {loadingPlan === plan.key ? "Processing..." : `Choose ${plan.label}`}
-            </button>
-          </article>
-        ))}
+        {currentSubscription && (
+          <div className="subscription-spotlight">
+            <span className="user-chip">Current</span>
+            <strong>{currentSubscription.plan}</strong>
+            <p>{currentSubscription.status}</p>
+            <small>
+              {currentSubscription.endsAt
+                ? `Valid till ${new Date(currentSubscription.endsAt).toLocaleDateString()}`
+                : "No end date available"}
+            </small>
+          </div>
+        )}
       </section>
 
-      {status && <p className="status-text">{status}</p>}
+      <section className="plans-grid premium-grid">
+        {plans.map((plan) => {
+          const details = planDetails[plan.key] || planDetails.free;
+          const isActive = currentSubscription?.plan === plan.key && currentSubscription?.status === "active";
+          const priceText = plan.amount === 0 ? "Free" : `INR ${(plan.amount / 100).toFixed(0)} / month`;
+
+          return (
+            <article key={plan.key} className={`plan-showcase-card glass-card ${isActive ? "featured" : ""}`}>
+              <div className="plan-showcase-top">
+                <div>
+                  <p className="kicker">{details.eyebrow}</p>
+                  <h2>{plan.label}</h2>
+                </div>
+                {isActive && <span className="status-pill live">Active</span>}
+              </div>
+              <p className="price-mark">{priceText}</p>
+              <p>{details.summary}</p>
+              <ul className="plan-feature-list">
+                {details.highlights.map((highlight) => (
+                  <li key={highlight}>{highlight}</li>
+                ))}
+              </ul>
+              <button className="btn btn-primary btn-block" disabled={loadingPlan === plan.key} onClick={() => handleSelectPlan(plan.key)}>
+                {loadingPlan === plan.key ? "Processing..." : `Choose ${plan.label}`}
+              </button>
+            </article>
+          );
+        })}
+      </section>
+
+      <section className="faq-grid">
+        <article className="glass-card faq-card">
+          <h3>Do I need deployment first?</h3>
+          <p>No. The builder is perfectly usable on localhost while you refine content and layout.</p>
+        </article>
+        <article className="glass-card faq-card">
+          <h3>Can I change templates later?</h3>
+          <p>Yes. Your portfolio data stays reusable, so the presentation layer can evolve without rewriting content.</p>
+        </article>
+        <article className="glass-card faq-card">
+          <h3>Is Razorpay required in dev?</h3>
+          <p>Only if you want to test the payment flow locally. You can keep building the rest without it.</p>
+        </article>
+      </section>
+
+      {status && <p className="status-banner">{status}</p>}
     </div>
   );
 }

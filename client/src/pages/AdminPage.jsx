@@ -13,16 +13,15 @@ import {
 import { Doughnut, Line } from "react-chartjs-2";
 import apiClient from "../api/client";
 
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  ArcElement,
-  Title,
-  Tooltip,
-  Legend
-);
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, ArcElement, Title, Tooltip, Legend);
+
+function formatCurrency(amount) {
+  return new Intl.NumberFormat("en-IN", {
+    style: "currency",
+    currency: "INR",
+    maximumFractionDigits: 0
+  }).format((amount || 0) / 100);
+}
 
 function AdminPage() {
   const [analytics, setAnalytics] = useState(null);
@@ -54,8 +53,8 @@ function AdminPage() {
       datasets: [
         {
           data: [analytics.stats.studentUsers, analytics.stats.professionalUsers],
-          backgroundColor: ["#0f766e", "#c2410c"],
-          borderWidth: 1
+          backgroundColor: ["#39d0a4", "#ff7a33"],
+          borderWidth: 0
         }
       ]
     };
@@ -67,7 +66,7 @@ function AdminPage() {
     }
 
     const labels = analytics.revenue.monthlyRevenue.map((item) => `${item._id.month}/${item._id.year}`);
-    const values = analytics.revenue.monthlyRevenue.map((item) => (item.totalRevenue / 100).toFixed(2));
+    const values = analytics.revenue.monthlyRevenue.map((item) => Math.round(item.totalRevenue / 100));
 
     return {
       labels,
@@ -75,14 +74,19 @@ function AdminPage() {
         {
           label: "Revenue (INR)",
           data: values,
-          borderColor: "#0369a1",
-          backgroundColor: "rgba(3, 105, 161, 0.18)",
+          borderColor: "#ff7a33",
+          backgroundColor: "rgba(255, 122, 51, 0.18)",
           fill: true,
-          tension: 0.3
+          tension: 0.35
         }
       ]
     };
   }, [analytics]);
+
+  const totalRevenue = useMemo(
+    () => analytics?.revenue?.monthlyRevenue?.reduce((sum, item) => sum + Number(item.totalRevenue || 0), 0) || 0,
+    [analytics]
+  );
 
   if (loading) {
     return <div className="page-center">Loading analytics...</div>;
@@ -93,35 +97,60 @@ function AdminPage() {
   }
 
   return (
-    <div className="content-wrap page-block">
-      <h1>Admin Dashboard</h1>
+    <div className="content-wrap page-shell">
+      <section className="admin-hero glass-card">
+        <div>
+          <p className="kicker">Admin analytics</p>
+          <h1>Track usage, subscriptions, and revenue in one control room.</h1>
+          <p>Use this dashboard to spot adoption trends, compare audience types, and measure paid growth over time.</p>
+        </div>
+        <div className="admin-hero-summary">
+          <span className="user-chip">Realtime overview</span>
+          <strong>{formatCurrency(totalRevenue)}</strong>
+          <small>Total recorded revenue</small>
+        </div>
+      </section>
 
-      <section className="stats-grid">
-        <article className="panel stat-card">
-          <h3>Total Users</h3>
-          <p>{analytics?.stats.totalUsers || 0}</p>
+      <section className="dashboard-stats-grid">
+        <article className="glass-card stat-card">
+          <span className="stat-label">Total users</span>
+          <strong>{analytics?.stats.totalUsers || 0}</strong>
+          <p>All registered accounts across roles.</p>
         </article>
-        <article className="panel stat-card">
-          <h3>Active Subscriptions</h3>
-          <p>{analytics?.stats.activeSubscriptions || 0}</p>
+        <article className="glass-card stat-card">
+          <span className="stat-label">Active subscriptions</span>
+          <strong>{analytics?.stats.activeSubscriptions || 0}</strong>
+          <p>Users currently on an active subscription cycle.</p>
         </article>
-        <article className="panel stat-card">
-          <h3>Students</h3>
-          <p>{analytics?.stats.studentUsers || 0}</p>
+        <article className="glass-card stat-card">
+          <span className="stat-label">Student ratio</span>
+          <strong>{analytics?.stats.studentUsers || 0}</strong>
+          <p>Accounts categorized under student profiles.</p>
         </article>
-        <article className="panel stat-card">
-          <h3>Professionals</h3>
-          <p>{analytics?.stats.professionalUsers || 0}</p>
+        <article className="glass-card stat-card">
+          <span className="stat-label">Professional ratio</span>
+          <strong>{analytics?.stats.professionalUsers || 0}</strong>
+          <p>Professionals and freelancers using the builder.</p>
         </article>
       </section>
 
       <section className="chart-grid">
-        <article className="panel">
-          <h2>Revenue Analytics</h2>
+        <article className="glass-card chart-card wide">
+          <div className="panel-head">
+            <div>
+              <p className="kicker">Revenue</p>
+              <h2>Monthly earnings</h2>
+            </div>
+          </div>
           {revenueChartData?.labels.length ? <Line data={revenueChartData} /> : <p>No revenue data yet.</p>}
         </article>
-        <article className="panel">
-          <h2>Student vs Professional Ratio</h2>
+        <article className="glass-card chart-card">
+          <div className="panel-head">
+            <div>
+              <p className="kicker">Audience mix</p>
+              <h2>Student vs professional</h2>
+            </div>
+          </div>
           {ratioChartData ? <Doughnut data={ratioChartData} /> : <p>No ratio data available.</p>}
         </article>
       </section>
