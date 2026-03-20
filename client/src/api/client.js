@@ -1,7 +1,18 @@
 import axios from "axios";
 
+function getDefaultApiBaseUrl() {
+  if (typeof window === "undefined") {
+    return "/api";
+  }
+
+  const hostname = window.location.hostname;
+  const isLocalHost = hostname === "localhost" || hostname === "127.0.0.1";
+
+  return isLocalHost ? "http://localhost:5000/api" : "/api";
+}
+
 function normalizeApiBaseUrl(value) {
-  const rawValue = (value || "http://localhost:5000/api").trim().replace(/\/+$/, "");
+  const rawValue = (value || getDefaultApiBaseUrl()).trim().replace(/\/+$/, "");
 
   if (/^https?:\/\//i.test(rawValue) || rawValue.startsWith("/")) {
     return rawValue;
@@ -51,7 +62,7 @@ apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.code === "ECONNABORTED") {
-      error.message = "Request timed out. Check VITE_API_URL and backend availability.";
+      error.message = "Request timed out. Check VITE_API_URL and your API deployment.";
     }
 
     return Promise.reject(error);

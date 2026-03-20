@@ -1,6 +1,13 @@
 import { Link } from "react-router-dom";
 
 function Footer() {
+  const deploymentMode =
+    typeof window !== "undefined" &&
+    window.location.hostname !== "localhost" &&
+    window.location.hostname !== "127.0.0.1"
+      ? "Single-origin Vercel deployment"
+      : "Local development";
+
   return (
     <footer className="site-footer">
       <div className="content-wrap footer-shell">
@@ -28,10 +35,10 @@ function Footer() {
             <Link to="/admin">Admin</Link>
           </div>
           <div>
-            <h4>Local Dev</h4>
-            <p>Frontend: localhost:5173</p>
-            <p>Backend: localhost:5000</p>
-            <p>Design mode: enabled</p>
+            <h4>Environment</h4>
+            <p>{deploymentMode}</p>
+            <p>Frontend routes are SPA-safe on Vercel</p>
+            <p>API defaults to same-origin in production</p>
           </div>
         </div>
       </div>

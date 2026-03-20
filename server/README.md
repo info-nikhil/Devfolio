@@ -40,4 +40,9 @@ Server runs on `http://localhost:5000`.
 
 ## Vercel Deployment (Backend)
 
-This folder includes `vercel.json` and `api/index.js` to run Express as a serverless function.
+This folder now uses:
+
+- `api/index.js` for `/api`
+- `api/[...path].js` for every nested API route
+
+That keeps the backend deployment to two serverless entrypoints instead of one file per route.

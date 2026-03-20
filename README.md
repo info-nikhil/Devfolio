@@ -111,13 +111,39 @@ npm run dev
 
 ## Vercel Deployment
 
-### Frontend
-- Deploy the `client` folder as a Vercel project.
-- `client/vercel.json` handles SPA rewrites.
+### Recommended: deploy the repo root as one Vercel project
 
-### Backend
-- Deploy the `server` folder as a separate Vercel project.
-- `server/api/index.js` exposes Express app for serverless.
-- `server/vercel.json` routes all backend traffic to the function.
+This repository is now configured for a single Vercel deployment:
 
-Set production environment variables in Vercel for both projects.
+- Static frontend is built from `client/`
+- API traffic is handled by a single catch-all Node function at `api/[...path].js`
+- SPA routes are rewritten to `client/dist/index.html`
+
+This avoids the Hobby-plan serverless function limit and keeps auth on the same origin, which removes most CORS headaches.
+
+### Required Vercel settings
+
+- Root Directory: repository root
+- Build Command: `npm run build`
+- Output Directory: `client/dist`
+
+### Required environment variables
+
+Frontend:
+- `VITE_GOOGLE_CLIENT_ID` for the Google button
+- `VITE_API_URL` only if the API is hosted on a different domain. Leave it unset for same-origin Vercel deployment.
+
+Backend:
+- `MONGODB_URI`
+- `JWT_SECRET`
+- `CLIENT_URL`
+- `SMTP_EMAIL`
+- `SMTP_PASSWORD`
+- `GOOGLE_CLIENT_ID` and/or `GOOGLE_CLIENT_IDS`
+- Razorpay and Vercel deployment variables if you use those features
+
+### If you still deploy frontend and backend separately
+
+- Keep `VITE_API_URL` pointed at the backend origin, for example `https://your-api.vercel.app/api`
+- Set `CLIENT_URL` on the backend to the frontend origin
+- Add every frontend origin you use to Google Cloud Authorized JavaScript origins

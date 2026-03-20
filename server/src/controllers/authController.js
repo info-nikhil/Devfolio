@@ -6,6 +6,22 @@ const { generateOtp, getOtpExpiry } = require("../utils/otp");
 const { sendOtpEmail } = require("../services/emailService");
 const slugify = require("../utils/slugify");
 
+function normalizeEmail(value) {
+  return typeof value === "string" ? value.trim().toLowerCase() : "";
+}
+
+function normalizeText(value) {
+  return typeof value === "string" ? value.trim() : "";
+}
+
+function readGoogleClientIds() {
+  return [process.env.GOOGLE_CLIENT_ID, process.env.GOOGLE_CLIENT_IDS]
+    .filter((value) => typeof value === "string" && value.trim())
+    .flatMap((value) => value.split(","))
+    .map((value) => value.trim())
+    .filter(Boolean);
+}
+
 async function createUniqueUsername(baseValue) {
   const base = slugify(baseValue) || `user${Date.now()}`;
   let candidate = base;
@@ -36,12 +52,15 @@ async function createAndSendOtp({ email, name, purpose }) {
 
 async function register(req, res) {
   try {
-    const { name, email, password, userType } = req.body;
+    const name = normalizeText(req.body?.name);
+    const email = normalizeEmail(req.body?.email);
+    const { password, userType } = req.body;
+
     if (!name || !email || !password) {
       return res.status(400).json({ message: "Name, email and password are required" });
     }
 
-    const existingUser = await User.findOne({ email: email.toLowerCase() });
+    const existingUser = await User.findOne({ email });
     if (existingUser) {
       if (!existingUser.isEmailVerified) {
         return res.status(409).json({
@@ -58,7 +77,7 @@ async function register(req, res) {
     const user = await User.create({
       name,
       username,
-      email: email.toLowerCase(),
+      email,
       password,
       userType: userType === "student" ? "student" : "professional",
       role: "user",
@@ -91,13 +110,15 @@ async function register(req, res) {
 
 async function verifyEmail(req, res) {
   try {
-    const { email, otp } = req.body;
+    const email = normalizeEmail(req.body?.email);
+    const otp = normalizeText(req.body?.otp);
+
     if (!email || !otp) {
       return res.status(400).json({ message: "Email and OTP are required" });
     }
 
     const otpRecord = await OtpCode.findOne({
-      email: email.toLowerCase(),
+      email,
       purpose: "email_verification",
       code: otp
     });
@@ -106,7 +127,7 @@ async function verifyEmail(req, res) {
       return res.status(400).json({ message: "Invalid or expired OTP" });
     }
 
-    const user = await User.findOne({ email: email.toLowerCase() });
+    const user = await User.findOne({ email });
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
@@ -137,12 +158,13 @@ async function verifyEmail(req, res) {
 
 async function resendVerificationOtp(req, res) {
   try {
-    const { email } = req.body;
+    const email = normalizeEmail(req.body?.email);
+
     if (!email) {
       return res.status(400).json({ message: "Email is required" });
     }
 
-    const user = await User.findOne({ email: email.toLowerCase() });
+    const user = await User.findOne({ email });
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
@@ -165,12 +187,14 @@ async function resendVerificationOtp(req, res) {
 
 async function login(req, res) {
   try {
-    const { email, password } = req.body;
+    const email = normalizeEmail(req.body?.email);
+    const { password } = req.body;
+
     if (!email || !password) {
       return res.status(400).json({ message: "Email and password are required" });
     }
 
-    const user = await User.findOne({ email: email.toLowerCase() });
+    const user = await User.findOne({ email });
     if (!user) {
       return res.status(401).json({ message: "Invalid credentials" });
     }
@@ -210,12 +234,13 @@ async function login(req, res) {
 
 async function forgotPassword(req, res) {
   try {
-    const { email } = req.body;
+    const email = normalizeEmail(req.body?.email);
+
     if (!email) {
       return res.status(400).json({ message: "Email is required" });
     }
 
-    const user = await User.findOne({ email: email.toLowerCase() });
+    const user = await User.findOne({ email });
     if (user) {
       await createAndSendOtp({
         email: user.email,
@@ -234,13 +259,16 @@ async function forgotPassword(req, res) {
 
 async function resetPassword(req, res) {
   try {
-    const { email, otp, newPassword } = req.body;
+    const email = normalizeEmail(req.body?.email);
+    const otp = normalizeText(req.body?.otp);
+    const { newPassword } = req.body;
+
     if (!email || !otp || !newPassword) {
       return res.status(400).json({ message: "Email, OTP and new password are required" });
     }
 
     const otpRecord = await OtpCode.findOne({
-      email: email.toLowerCase(),
+      email,
       purpose: "password_reset",
       code: otp
     });
@@ -249,7 +277,7 @@ async function resetPassword(req, res) {
       return res.status(400).json({ message: "Invalid or expired OTP" });
     }
 
-    const user = await User.findOne({ email: email.toLowerCase() });
+    const user = await User.findOne({ email });
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
@@ -266,23 +294,25 @@ async function resetPassword(req, res) {
 
 async function googleLogin(req, res) {
   try {
-    const { credential } = req.body;
+    const credential = normalizeText(req.body?.credential);
+
     if (!credential) {
       return res.status(400).json({ message: "Google credential is required" });
     }
 
-    if (!process.env.GOOGLE_CLIENT_ID) {
+    const googleClientIds = readGoogleClientIds();
+    if (googleClientIds.length === 0) {
       return res.status(500).json({ message: "GOOGLE_CLIENT_ID is not configured" });
     }
 
-    const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+    const googleClient = new OAuth2Client();
     const ticket = await googleClient.verifyIdToken({
       idToken: credential,
-      audience: process.env.GOOGLE_CLIENT_ID
+      audience: googleClientIds
     });
 
     const payload = ticket.getPayload();
-    const email = payload?.email?.toLowerCase();
+    const email = normalizeEmail(payload?.email);
     if (!email) {
       return res.status(400).json({ message: "Google account email not available" });
     }
@@ -324,7 +354,11 @@ async function googleLogin(req, res) {
       }
     });
   } catch (error) {
-    return res.status(401).json({ message: "Google authentication failed" });
+    console.error("Google authentication failed:", error);
+    return res.status(401).json({
+      message:
+        process.env.NODE_ENV === "production" ? "Google authentication failed" : error.message
+    });
   }
 }
 
