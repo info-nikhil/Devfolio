@@ -7,36 +7,13 @@ import { AuthProvider } from "./context/AuthContext";
 import { PublicConfigProvider, usePublicConfig } from "./context/PublicConfigContext";
 import "./styles/app.css";
 
-<<<<<<< HEAD
-function AppProviders() {
-  const { googleClientId, loading } = usePublicConfig();
-
-  if (loading) {
-    return <div className="page-center">Loading application...</div>;
-  }
-
-  const app = (
-    <AuthProvider>
-      <App />
-    </AuthProvider>
-  );
-
-  return googleClientId ? <GoogleOAuthProvider clientId={googleClientId}>{app}</GoogleOAuthProvider> : app;
-}
-
-ReactDOM.createRoot(document.getElementById("root")).render(
-  <React.StrictMode>
-=======
 function AppShell() {
   return (
->>>>>>> 3c0c81c (updates)
     <BrowserRouter>
-      <PublicConfigProvider>
-        <AppProviders />
-      </PublicConfigProvider>
+      <AuthProvider>
+        <App />
+      </AuthProvider>
     </BrowserRouter>
-<<<<<<< HEAD
-=======
   );
 }
 
@@ -52,6 +29,5 @@ ReactDOM.createRoot(document.getElementById("root")).render(
     <PublicConfigProvider>
       <RootProviders />
     </PublicConfigProvider>
->>>>>>> 3c0c81c (updates)
   </React.StrictMode>
 );

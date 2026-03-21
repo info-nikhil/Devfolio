@@ -35,11 +35,7 @@ const modeMeta = {
 function AuthPage() {
   const navigate = useNavigate();
   const auth = useAuth();
-<<<<<<< HEAD
-  const { googleClientId, loading: publicConfigLoading } = usePublicConfig();
-=======
   const publicConfig = usePublicConfig();
->>>>>>> 3c0c81c (updates)
   const [mode, setMode] = useState("login");
   const [pendingEmail, setPendingEmail] = useState("");
   const [message, setMessage] = useState("");
@@ -56,11 +52,7 @@ function AuthPage() {
   const [forgotEmail, setForgotEmail] = useState("");
   const [resetForm, setResetForm] = useState({ email: "", otp: "", newPassword: "" });
 
-<<<<<<< HEAD
-  const googleEnabled = Boolean(googleClientId);
-=======
   const googleEnabled = publicConfig.googleEnabled;
->>>>>>> 3c0c81c (updates)
   const currentMode = modeMeta[mode];
 
   function handlePostLogin(user) {
@@ -385,13 +377,8 @@ function AuthPage() {
                 <div className="google-wrap">
                   <GoogleLogin onSuccess={handleGoogleSuccess} onError={() => setMessage("Google login failed")} />
                 </div>
-              ) : publicConfigLoading ? (
-                <div className="dev-note-card">Loading sign-in providers...</div>
               ) : (
                 <div className="dev-note-card">
-<<<<<<< HEAD
-                  Google sign in is unavailable until the backend is configured with <code>GOOGLE_CLIENT_ID</code>.
-=======
                   {publicConfig.loading ? (
                     "Checking Google sign in configuration..."
                   ) : (
@@ -400,7 +387,6 @@ function AuthPage() {
                       <code>VITE_GOOGLE_CLIENT_ID</code> is set on the client.
                     </>
                   )}
->>>>>>> 3c0c81c (updates)
                 </div>
               )}
             </div>

@@ -7,5 +7,11 @@
     "api/index.js": {
       "maxDuration": 30
     }
-  }
+  },
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "/api/[...path].js"
+    }
+  ]
 }

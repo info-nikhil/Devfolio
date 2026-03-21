@@ -1,11 +1,7 @@
 const connectDB = require("../src/config/db");
 const app = require("../src/app");
 
-<<<<<<< HEAD
-const healthPaths = new Set([
-=======
 const requestPathsWithoutDatabase = new Set([
->>>>>>> 3c0c81c (updates)
   "/",
   "/api",
   "/api/",

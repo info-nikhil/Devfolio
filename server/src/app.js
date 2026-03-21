@@ -109,13 +109,13 @@ function normalizeOrigin(value) {
 }
 
 function getConfiguredFrontendOrigins() {
-  const configuredOrigins = (process.env.FRONTEND_URL || "")
-    .split(",")
+  const configuredOrigins = [process.env.FRONTEND_URL || "", process.env.CLIENT_URL || ""]
+    .flatMap((value) => value.split(","))
     .map((origin) => normalizeOrigin(origin))
     .filter(Boolean);
 
   if (configuredOrigins.length > 0) {
-    return configuredOrigins;
+    return [...new Set(configuredOrigins)];
   }
 
   if (process.env.NODE_ENV !== "production") {
@@ -150,6 +150,10 @@ function isAllowedOrigin(origin, req) {
   }
 
   if (allowedOrigins.includes(normalizedOrigin)) {
+    return true;
+  }
+
+  if (/^https:\/\/[a-z0-9-]+\.vercel\.app$/i.test(normalizedOrigin)) {
     return true;
   }
 
@@ -255,7 +259,6 @@ apiRouter.get("/", (req, res) => {
 
 apiRouter.use("/config", configRoutes);
 apiRouter.use("/health", healthRoutes);
-apiRouter.use("/config", configRoutes);
 apiRouter.use("/auth", authRoutes);
 apiRouter.use("/portfolios", portfolioRoutes);
 apiRouter.use("/subscriptions", subscriptionRoutes);
