@@ -35,7 +35,11 @@ const modeMeta = {
 function AuthPage() {
   const navigate = useNavigate();
   const auth = useAuth();
+<<<<<<< HEAD
   const { googleClientId, loading: publicConfigLoading } = usePublicConfig();
+=======
+  const publicConfig = usePublicConfig();
+>>>>>>> 3c0c81c (updates)
   const [mode, setMode] = useState("login");
   const [pendingEmail, setPendingEmail] = useState("");
   const [message, setMessage] = useState("");
@@ -52,7 +56,11 @@ function AuthPage() {
   const [forgotEmail, setForgotEmail] = useState("");
   const [resetForm, setResetForm] = useState({ email: "", otp: "", newPassword: "" });
 
+<<<<<<< HEAD
   const googleEnabled = Boolean(googleClientId);
+=======
+  const googleEnabled = publicConfig.googleEnabled;
+>>>>>>> 3c0c81c (updates)
   const currentMode = modeMeta[mode];
 
   function handlePostLogin(user) {
@@ -189,7 +197,7 @@ function AuthPage() {
             </div>
             <div className="auth-metric-card">
               <strong>Structured</strong>
-              <span>Use email OTP, password reset, or Google sign in when configured locally.</span>
+              <span>Use email OTP, password reset, or Google sign in when the deployment is configured.</span>
             </div>
             <div className="auth-metric-card">
               <strong>Flexible</strong>
@@ -381,7 +389,18 @@ function AuthPage() {
                 <div className="dev-note-card">Loading sign-in providers...</div>
               ) : (
                 <div className="dev-note-card">
+<<<<<<< HEAD
                   Google sign in is unavailable until the backend is configured with <code>GOOGLE_CLIENT_ID</code>.
+=======
+                  {publicConfig.loading ? (
+                    "Checking Google sign in configuration..."
+                  ) : (
+                    <>
+                      Google sign in is unavailable until <code>GOOGLE_CLIENT_ID</code> is set on the backend or{" "}
+                      <code>VITE_GOOGLE_CLIENT_ID</code> is set on the client.
+                    </>
+                  )}
+>>>>>>> 3c0c81c (updates)
                 </div>
               )}
             </div>

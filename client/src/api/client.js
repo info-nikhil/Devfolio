@@ -36,6 +36,7 @@ export function getApiBaseUrl() {
 
 const baseURL = getApiBaseUrl();
 const publicAuthRoutes = new Set([
+  "/config/public",
   "/auth/register",
   "/auth/login",
   "/auth/verify-email",

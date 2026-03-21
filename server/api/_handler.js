@@ -1,7 +1,11 @@
 const connectDB = require("../src/config/db");
 const app = require("../src/app");
 
+<<<<<<< HEAD
 const healthPaths = new Set([
+=======
+const requestPathsWithoutDatabase = new Set([
+>>>>>>> 3c0c81c (updates)
   "/",
   "/api",
   "/api/",
@@ -21,7 +25,7 @@ function shouldSkipDatabase(req) {
   }
 
   const requestPath = (req.url || "").split("?")[0];
-  return healthPaths.has(requestPath);
+  return requestPathsWithoutDatabase.has(requestPath);
 }
 
 module.exports = async (req, res) => {

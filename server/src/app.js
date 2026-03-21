@@ -255,6 +255,7 @@ apiRouter.get("/", (req, res) => {
 
 apiRouter.use("/config", configRoutes);
 apiRouter.use("/health", healthRoutes);
+apiRouter.use("/config", configRoutes);
 apiRouter.use("/auth", authRoutes);
 apiRouter.use("/portfolios", portfolioRoutes);
 apiRouter.use("/subscriptions", subscriptionRoutes);
